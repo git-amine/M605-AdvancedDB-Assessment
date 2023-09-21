@@ -1,0 +1,124 @@
+Query 1 : Detailed information about suppliers and the number of products that they provide.	
+
+-- Create a view 
+
+CREATE VIEW SupplierProductCounts AS
+SELECT
+    S.ID AS SupplierID,
+    S.supplier_name AS SupplierName,
+    S.email AS SupplierEmail,
+    S.phone AS SupplierPhone,
+    S.address AS SupplierAddress,
+    COUNT(P.ID) AS NumberOfProducts
+FROM
+    Suppliers AS S
+LEFT JOIN
+    Products AS P ON S.ID = P.Suppliers_ID
+GROUP BY
+    S.ID, S.supplier_name, S.email, S.phone, S.address;
+
+
+-- Query the SupplierProductCounts view
+
+SELECT * FROM SupplierProductCounts;
+
+
+
+Query 2 : 10 best-selling products with the total amount and their supplier.	
+
+-- Create a view 
+
+CREATE VIEW BestSellingProducts AS
+SELECT 
+    P.product_name AS ProductName,
+    SUM(OI.quantity) AS TotalQuantitySold,
+    SUM(OI.unit_price * OI.quantity) AS TotalAmountSold,
+    S.supplier_name AS SupplierName
+FROM
+    Products AS P
+JOIN
+    Order_Item AS OI ON P.ID = OI.Products_ID
+JOIN
+    Suppliers AS S ON P.Suppliers_ID = S.ID
+GROUP BY
+    P.product_name, S.supplier_name
+ORDER BY
+    TotalQuantitySold DESC
+    LIMIT 10 ;
+
+
+
+-- Query the BestSellingProducts view
+
+SELECT * FROM BestSellingProducts;
+
+
+
+Query 3 : List of customers and their total purchases.	
+
+-- Create a view 
+
+CREATE VIEW CustomerTotalPurchases AS
+SELECT
+    C.first_name AS FirstName,
+    C.last_name AS LastName,
+    C.email AS Email,
+    SUM(O.total_amount) AS TotalPurchases
+FROM
+    Customers AS C
+LEFT JOIN
+    Orders AS O ON C.ID = O.Customers_ID
+GROUP BY
+    C.first_name, C.last_name, C.email;
+
+
+-- Query the CustomerTotalPurchases view
+
+SELECT * FROM CustomerTotalPurchases ;
+
+
+
+Query 4:  List of returned items.	
+
+-- Create a view
+
+CREATE VIEW ReturnedItems AS
+SELECT
+    OI.ID AS OrderItemID,
+    P.product_name AS ProductName,    
+FROM
+    Order_Item AS OI
+JOIN
+    Products AS P ON OI.Products_ID = P.ID
+JOIN
+    OrderItemStatus AS OIS ON OI.OrderItemStatus_ID = OIS.ID
+WHERE
+    OIS.status = 'Returns';
+
+
+-- Query the ReturnedItems view
+
+SELECT * FROM ReturnedItems ;
+
+
+
+Query 5 : List of products in the fashion category which were sold last month.
+
+
+SELECT
+    P.product_name AS ProductName,
+    P.description AS ProductDescription,
+    O.order_date AS OrderDate
+FROM
+    Products AS P
+JOIN
+    Categories AS C ON P.Categories_ID = C.ID
+JOIN
+    Order_Item AS OI ON P.ID = OI.Products_ID
+JOIN
+    Orders AS O ON OI.Orders_ID = O.ID
+WHERE
+    C.category_name = 'Fashion'
+    AND MONTH(O.order_date) = MONTH(NOW()) - 1
+    AND YEAR(O.order_date) = YEAR(NOW());
+
